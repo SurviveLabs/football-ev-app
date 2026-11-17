@@ -1,5 +1,4 @@
 export default function handler(req, res) {
-  // Handle CORS for local or cross-origin testing
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -37,29 +36,25 @@ export default function handler(req, res) {
       return res.status(400).json({ error: 'Please provide valid non-negative numbers for all goal averages.' });
     }
 
-    // 2. Calculate Expected Goals (xG) with Home-Field Advantage & Form Weighting
-    // Baseline league average goals per team (~1.35) & standard Home Field Advantage (~1.12x)
+    // 2. Expected Goals (xG) with Home-Field Advantage & Form Weighting
     const HOME_ADVANTAGE = 1.12;
     const AWAY_FACTOR = 0.92;
 
-    // Form weight scales the blend between offensive output and opponent defensive vulnerability
-    // Higher form weight (towards 10) emphasizes the team's recent scoring rate slightly more
-    const attackInfluence = 0.45 + (fWeight / 10) * 0.15; // Ranges from 0.465 to 0.60
+    const attackInfluence = 0.45 + (fWeight / 10) * 0.15;
     const defenseInfluence = 1 - attackInfluence;
 
     const rawHomeXG = (hGS * attackInfluence + aGC * defenseInfluence) * HOME_ADVANTAGE;
     const rawAwayXG = (aGS * attackInfluence + hGC * defenseInfluence) * AWAY_FACTOR;
 
-    // Clamp xG to realistic bounds to prevent extreme skew
     const homeXG = Math.max(0.15, Math.min(rawHomeXG, 5.5));
     const awayXG = Math.max(0.15, Math.min(rawAwayXG, 5.5));
 
     // 3. Poisson PMF Helper
     const factorial = (n) => {
       if (n <= 1) return 1;
-      let res = 1;
-      for (let i = 2; i <= n; i++) res *= i;
-      return res;
+      let result = 1;
+      for (let i = 2; i <= n; i++) result *= i;
+      return result;
     };
 
     const poisson = (k, lambda) => {
@@ -67,7 +62,6 @@ export default function handler(req, res) {
     };
 
     // 4. Dixon-Coles Low-Score Correlation Adjustment (tau)
-    // Standard empirical rho (-0.11) adjusts 0-0, 1-0, 0-1, and 1-1 probabilities
     const RHO = -0.11;
     const dixonColesTau = (x, y, lambda, mu, rho) => {
       if (x === 0 && y === 0) return 1 - lambda * mu * rho;
@@ -93,7 +87,6 @@ export default function handler(req, res) {
       }
     }
 
-    // Normalize matrix so probabilities sum to exactly 1.0 (100%)
     let mostLikelyScore = { home: 0, away: 0, prob: 0 };
     for (let h = 0; h <= MAX_GOALS; h++) {
       for (let a = 0; a <= MAX_GOALS; a++) {
@@ -119,26 +112,21 @@ export default function handler(req, res) {
 
     let customOver = 0;
     let customUnder = 0;
-    let customPush = 0; // Handles whole-number lines like 2.0 or 3.0
+    let customPush = 0;
 
     for (let h = 0; h <= MAX_GOALS; h++) {
       for (let a = 0; a <= MAX_GOALS; a++) {
         const p = matrix[h][a];
         const totalGoals = h + a;
 
-        // 1X2
         if (h > a) homeWin += p;
         else if (h === a) draw += p;
         else awayWin += p;
 
-        // BTTS
         if (h > 0 && a > 0) bttsYes += p;
-
-        // Default Goal Lines
         if (totalGoals > 1.5) over15 += p;
         if (totalGoals < 2.5) under25 += p;
 
-        // Custom Goal Line (if provided)
         if (hasCustomLine) {
           if (totalGoals > parsedLine) customOver += p;
           else if (totalGoals < parsedLine) customUnder += p;
@@ -147,7 +135,6 @@ export default function handler(req, res) {
       }
     }
 
-    // Re-normalize custom line in case of whole-goal push (e.g., Over/Under 2.0)
     if (hasCustomLine && customPush > 0) {
       const nonPushTotal = customOver + customUnder;
       if (nonPushTotal > 0) {
@@ -156,7 +143,7 @@ export default function handler(req, res) {
       }
     }
 
-    // 7. Build Markets List & Evaluate +EV
+    // 7. Evaluate Markets Against Probability Gate & +EV
     const probGate = leagueTier === 'lower' ? 0.60 : 0.55;
 
     const evaluateMarket = (id, label, prob, oddInput) => {
@@ -167,10 +154,9 @@ export default function handler(req, res) {
 
       let evPercent = null;
       let isPositiveEV = false;
-      let meetsGate = cleanProb >= probGate;
+      const meetsGate = cleanProb >= probGate;
 
       if (hasBookieOdd) {
-        // EV% = ((True Probability * Bookie Odds) - 1) * 100
         evPercent = (cleanProb * bOdd - 1) * 100;
         isPositiveEV = evPercent > 0 && meetsGate;
       }
@@ -193,7 +179,7 @@ export default function handler(req, res) {
       evaluateMarket('2', `${awayTeam} Win (2)`, awayWin, bookieOdds['2']),
       evaluateMarket('BTTS_YES', 'Both Teams to Score (Yes)', bttsYes, bookieOdds['BTTS_YES'])
     ];
-    
+
     if (hasCustomLine) {
       markets.push(
         evaluateMarket('CUSTOM_OVER', `Over ${parsedLine} Goals`, customOver, bookieOdds['CUSTOM_OVER']),
