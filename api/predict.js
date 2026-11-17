@@ -188,12 +188,12 @@ export default function handler(req, res) {
     };
 
     const markets = [
-      evaluateMarket('1X', `${homeTeam} or Draw (1X)`, homeWin + draw, bookieOdds['1X']),
-      evaluateMarket('X2', `Draw or ${awayTeam} (X2)`, draw + awayWin, bookieOdds['X2']),
-      evaluateMarket('12', `${homeTeam} or ${awayTeam} (12)`, homeWin + awayWin, bookieOdds['12']),
+      evaluateMarket('1', `${homeTeam} Win (1)`, homeWin, bookieOdds['1']),
+      evaluateMarket('X', 'Draw (X)', draw, bookieOdds['X']),
+      evaluateMarket('2', `${awayTeam} Win (2)`, awayWin, bookieOdds['2']),
       evaluateMarket('BTTS_YES', 'Both Teams to Score (Yes)', bttsYes, bookieOdds['BTTS_YES'])
     ];
-
+    
     if (hasCustomLine) {
       markets.push(
         evaluateMarket('CUSTOM_OVER', `Over ${parsedLine} Goals`, customOver, bookieOdds['CUSTOM_OVER']),
