@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Dixon-Coles Football +EV Engine</title>
+  <title>Dixon-Coles +EV Engine</title>
   <style>
     :root {
       --bg-main: #0b0f17;
@@ -17,289 +17,61 @@
       --green-bg: rgba(16, 185, 129, 0.14);
       --green-border: #10b981;
       --green-text: #34d399;
-      --amber-text: #fbbf24;
       --red-text: #f87171;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text-primary); padding: 16px; padding-bottom: 48px; }
+    .container { max-width: 540px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 20px; }
+    header h1 { font-size: 1.35rem; font-weight: 700; }
+    header p { font-size: 0.82rem; color: var(--text-secondary); margin-top: 2px; }
 
-    body {
-      background-color: var(--bg-main);
-      color: var(--text-primary);
-      line-height: 1.5;
-      padding: 16px;
-      padding-bottom: 48px;
-    }
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+    .section-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); font-weight: 700; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group:last-child { margin-bottom: 0; }
+    label { display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px; font-weight: 500; }
+    input, select { width: 100%; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-primary); padding: 10px 12px; border-radius: 9px; font-size: 0.95rem; outline: none; }
+    input:focus, select:focus { border-color: var(--accent); }
 
-    .container {
-      max-width: 540px;
-      margin: 0 auto;
-    }
+    .range-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .range-badge { background: var(--bg-input); border: 1px solid var(--border); padding: 2px 8px; border-radius: 6px; font-size: 0.8srem; font-weight: 700; color: var(--accent); }
+    input[type="range"] { padding: 0; height: 6px; background: var(--bg-input); border-radius: 4px; accent-color: var(--accent); }
 
-    header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
+    /* Collapsible Accordion for Bookie Odds */
+    details.accordion { background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 14px; }
+    details.accordion summary { font-size: 0.85rem; font-weight: 700; color: var(--accent); cursor: pointer; user-select: none; }
+    details.accordion .accordion-content { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
 
-    header h1 {
-      font-size: 1.35rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
+    .btn-submit { width: 100%; background: var(--accent); color: #fff; border: none; padding: 14px; border-radius: 11px; font-size: 1rem; font-weight: 700; cursor: pointer; }
+    .btn-submit:hover { background: var(--accent-hover); }
 
-    header p {
-      font-size: 0.82rem;
-      color: var(--text-secondary);
-      margin-top: 2px;
-    }
+    #results { display: none; margin-top: 20px; }
+    .summary-banner { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center; margin-bottom: 16px; }
+    .stat-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 8px; }
+    .stat-label { font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; }
+    .stat-value { font-size: 1.15rem; font-weight: 800; margin-top: 3px; }
+    .stat-sub { font-size: 0.72rem; color: var(--text-secondary); margin-top: 1px; }
 
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    .section-title {
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-secondary);
-      font-weight: 700;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .form-group {
-      margin-bottom: 12px;
-    }
-
-    .form-group:last-child {
-      margin-bottom: 0;
-    }
-
-    label {
-      display: block;
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      margin-bottom: 5px;
-      font-weight: 500;
-    }
-
-    input, select {
-      width: 100%;
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      color: var(--text-primary);
-      padding: 10px 12px;
-      border-radius: 9px;
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    input:focus, select:focus {
-      border-color: var(--accent);
-    }
-
-    input::placeholder {
-      color: #475569;
-    }
-
-    .range-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 4px;
-    }
-
-    .range-badge {
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      padding: 2px 8px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--accent);
-    }
-
-    input[type="range"] {
-      padding: 0;
-      height: 6px;
-      background: var(--bg-input);
-      border-radius: 4px;
-      accent-color: var(--accent);
-    }
-
-    .btn-submit {
-      width: 100%;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      padding: 14px;
-      border-radius: 11px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
-    }
-
-    .btn-submit:hover {
-      background: var(--accent-hover);
-    }
-
-    .btn-submit:active {
-      transform: scale(0.99);
-    }
-
-    .btn-submit:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    /* Results Area */
-    #results {
-      display: none;
-      margin-top: 20px;
-    }
-
-    .summary-banner {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-      text-align: center;
-      margin-bottom: 16px;
-    }
-
-    .stat-box {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 8px;
-    }
-
-    .stat-label {
-      font-size: 0.72rem;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .stat-value {
-      font-size: 1.15rem;
-      font-weight: 800;
-      margin-top: 3px;
-      color: var(--text-primary);
-    }
-
-    .stat-sub {
-      font-size: 0.72rem;
-      color: var(--text-secondary);
-      margin-top: 1px;
-    }
-
-    .market-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 10px;
-      transition: all 0.2s ease;
-    }
-
-    /* Highlight +EV Bets in Green */
-    .market-card.positive-ev {
-      background: var(--green-bg);
-      border: 1.5px solid var(--green-border);
-      box-shadow: 0 0 18px rgba(16, 185, 129, 0.12);
-    }
-
-    .market-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-
-    .market-name {
-      font-weight: 700;
-      font-size: 0.95rem;
-    }
-
-    .ev-badge {
-      font-size: 0.75rem;
-      font-weight: 800;
-      padding: 3px 8px;
-      border-radius: 6px;
-      text-transform: uppercase;
-    }
-
-    .ev-badge.green {
-      background: var(--green-border);
-      color: #052e16;
-    }
-
-    .ev-badge.gate-pass {
-      background: rgba(59, 130, 246, 0.2);
-      color: #93c5fd;
-    }
-
-    .ev-badge.neutral {
-      background: var(--bg-input);
-      color: var(--text-secondary);
-    }
-
-    .market-metrics {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      font-size: 0.82rem;
-      background: rgba(11, 15, 23, 0.45);
-      padding: 8px 10px;
-      border-radius: 8px;
-    }
-
-    .metric span {
-      display: block;
-      font-size: 0.7rem;
-      color: var(--text-secondary);
-    }
-
-    .metric strong {
-      font-size: 0.92rem;
-    }
-
-    .error-msg {
-      background: rgba(248, 113, 113, 0.15);
-      border: 1px solid var(--red-text);
-      color: var(--red-text);
-      padding: 12px;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      margin-bottom: 14px;
-      display: none;
-    }
+    .market-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+    .market-card.positive-ev { background: var(--green-bg); border: 1.5px solid var(--green-border); }
+    .market-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .market-name { font-weight: 700; font-size: 0.95rem; }
+    .ev-badge { font-size: 0.75rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; }
+    .ev-badge.green { background: var(--green-border); color: #052e16; }
+    .ev-badge.neutral { background: var(--bg-input); color: var(--text-secondary); }
+    .market-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 0.82rem; background: rgba(11, 15, 23, 0.45); padding: 8px 10px; border-radius: 8px; }
+    .metric span { display: block; font-size: 0.7rem; color: var(--text-secondary); }
+    .error-msg { background: rgba(248, 113, 113, 0.15); border: 1px solid var(--red-text); color: var(--red-text); padding: 12px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 14px; display: none; }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
       <h1>⚽ Dixon-Coles +EV Engine</h1>
-      <p>Adjusted Poisson Probability &amp; Fair Odds Calculator</p>
+      <p>Clean Mobile Probability &amp; Fair Odds Calculator</p>
     </header>
 
     <div id="errorBox" class="error-msg"></div>
@@ -309,13 +81,12 @@
       <div class="card">
         <div class="section-title">1. Match &amp; Probability Gate</div>
         <div class="form-group">
-          <label for="leagueTier">League Tier (Confidence Gate)</label>
+          <label for="leagueTier">League Tier</label>
           <select id="leagueTier">
             <option value="major">Major League (55% Min Gate)</option>
             <option value="lower">Lower / Minor League (60% Min Gate)</option>
           </select>
         </div>
-
         <div class="grid-2">
           <div class="form-group">
             <label for="homeTeam">Home Team</label>
@@ -333,27 +104,25 @@
         <div class="section-title">2. Team Goal Averages</div>
         <div class="grid-2">
           <div class="form-group">
-            <label for="homeScored">Home Avg Scored</label>
+            <label for="homeScored">Home Scored (Avg)</label>
             <input type="number" step="0.01" min="0" id="homeScored" placeholder="1.85" required />
           </div>
           <div class="form-group">
-            <label for="homeConceded">Home Avg Conceded</label>
+            <label for="homeConceded">Home Conceded (Avg)</label>
             <input type="number" step="0.01" min="0" id="homeConceded" placeholder="0.90" required />
           </div>
         </div>
-
-        <div class="grid-2">
+        <div class="grid-2" style="margin-top: 10px;">
           <div class="form-group">
-            <label for="awayScored">Away Avg Scored</label>
+            <label for="awayScored">Away Scored (Avg)</label>
             <input type="number" step="0.01" min="0" id="awayScored" placeholder="1.45" required />
           </div>
           <div class="form-group">
-            <label for="awayConceded">Away Avg Conceded</label>
+            <label for="awayConceded">Away Conceded (Avg)</label>
             <input type="number" step="0.01" min="0" id="awayConceded" placeholder="1.25" required />
           </div>
         </div>
-
-        <div class="form-group" style="margin-top: 8px;">
+        <div class="form-group" style="margin-top: 12px;">
           <div class="range-header">
             <label for="formWeight" style="margin:0;">Recent Form Weight (1–10)</label>
             <span class="range-badge" id="formWeightVal">5</span>
@@ -362,66 +131,36 @@
         </div>
       </div>
 
-      <!-- Optional Bookie Odds & Custom Line -->
+      <!-- Collapsible Bookie Odds (Hidden by default to keep UI clean) -->
       <div class="card">
-        <div class="section-title">
-          <span>3. Bookie Odds (Optional)</span>
-          <span style="font-weight:400; text-transform:none;">Leave blank for Fair Odds</span>
-        </div>
+        <details class="accordion">
+          <summary>+ Add Bookie Odds to Check +EV (Optional)</summary>
+          <div class="accordion-content">
+            <div class="form-group">
+              <label for="customLine">Custom Goal Line (Default: O1.5 &amp; U2.5)</label>
+              <input type="number" step="0.25" min="0.5" id="customLine" placeholder="e.g. 2.5 or 3.0" />
+            </div>
+            <div class="grid-2">
+              <div class="form-group"><label>1X Odds</label><input type="number" step="0.01" min="1.01" id="odd1X" placeholder="1.35" /></div>
+              <div class="form-group"><label>X2 Odds</label><input type="number" step="0.01" min="1.01" id="oddX2" placeholder="1.85" /></div>
+            </div>
+            <div class="grid-2" style="margin-top:10px;">
+              <div class="form-group"><label>12 Odds</label><input type="number" step="0.01" min="1.01" id="odd12" placeholder="1.30" /></div>
+              <div class="form-group"><label>BTTS (Yes) Odds</label><input type="number" step="0.01" min="1.01" id="oddBTTS" placeholder="1.75" /></div>
+            </div>
+            <div class="grid-2" id="defaultGoalOdds" style="margin-top:10px;">
+              <div class="form-group"><label>Over 1.5 Odds</label><input type="number" step="0.01" min="1.01" id="oddOver15" placeholder="1.28" /></div>
+              <div class="form-group"><label>Under 2.5 Odds</label><input type="number" step="0.01" min="1.01" id="oddUnder25" placeholder="1.95" /></div>
+            </div>
+            <div class="grid-2" id="customGoalOdds" style="display: none; margin-top:10px;">
+              <div class="form-group"><label id="labelCustomOver">Over Line Odds</label><input type="number" step="0.01" min="1.01" id="oddCustomOver" placeholder="1.90" /></div>
+              <div class="form-group"><label id="labelCustomUnder">Under Line Odds</label><input type="number" step="0.01" min="1.01" id="oddCustomUnder" placeholder="1.90" /></div>
+            </div>
+          </div>
+        </details>
 
-        <div class="form-group">
-          <label for="customLine">Custom Bookie Goal Line (Default: O1.5 &amp; U2.5)</label>
-          <input type="number" step="0.25" min="0.5" id="customLine" placeholder="e.g. 2.5 or 3.0" />
-        </div>
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label for="odd1X">1X Odds</label>
-            <input type="number" step="0.01" min="1.01" id="odd1X" placeholder="1.35" />
-          </div>
-          <div class="form-group">
-            <label for="oddX2">X2 Odds</label>
-            <input type="number" step="0.01" min="1.01" id="oddX2" placeholder="1.85" />
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label for="odd12">12 Odds</label>
-            <input type="number" step="0.01" min="1.01" id="odd12" placeholder="1.30" />
-          </div>
-          <div class="form-group">
-            <label for="oddBTTS">BTTS (Yes) Odds</label>
-            <input type="number" step="0.01" min="1.01" id="oddBTTS" placeholder="1.75" />
-          </div>
-        </div>
-
-        <!-- Default Goal Odds -->
-        <div class="grid-2" id="defaultGoalOdds">
-          <div class="form-group">
-            <label for="oddOver15">Over 1.5 Odds</label>
-            <input type="number" step="0.01" min="1.01" id="oddOver15" placeholder="1.28" />
-          </div>
-          <div class="form-group">
-            <label for="oddUnder25">Under 2.5 Odds</label>
-            <input type="number" step="0.01" min="1.01" id="oddUnder25" placeholder="1.95" />
-          </div>
-        </div>
-
-        <!-- Custom Goal Line Odds (Hidden until customLine is entered) -->
-        <div class="grid-2" id="customGoalOdds" style="display: none;">
-          <div class="form-group">
-            <label for="oddCustomOver" id="labelCustomOver">Over Line Odds</label>
-            <input type="number" step="0.01" min="1.01" id="oddCustomOver" placeholder="1.90" />
-          </div>
-          <div class="form-group">
-            <label for="oddCustomUnder" id="labelCustomUnder">Under Line Odds</label>
-            <input type="number" step="0.01" min="1.01" id="oddCustomUnder" placeholder="1.90" />
-          </div>
-        </div>
+        <button type="submit" class="btn-submit" id="submitBtn">Calculate Fair Odds &amp; Probabilities</button>
       </div>
-
-      <button type="submit" class="btn-submit" id="submitBtn">Calculate +EV Probabilities</button>
     </form>
 
     <!-- Output Results -->
@@ -440,11 +179,11 @@
         <div class="stat-box">
           <div class="stat-label">Active Gate</div>
           <div class="stat-value" id="resGate">55%</div>
-          <div class="stat-sub" id="resTierLabel">Major Tier</div>
+          <div class="stat-sub" id="resTierLabel">Major</div>
         </div>
       </div>
 
-      <div class="section-title" style="margin-top: 8px;">
+      <div class="section-title">
         <span>Market Breakdown</span>
         <span id="evCountBadge" style="color: var(--green-text);"></span>
       </div>
@@ -465,12 +204,8 @@
     const resultsDiv = document.getElementById('results');
     const submitBtn = document.getElementById('submitBtn');
 
-    // Update Form Weight badge live
-    formWeightInput.addEventListener('input', () => {
-      formWeightVal.textContent = formWeightInput.value;
-    });
+    formWeightInput.addEventListener('input', () => { formWeightVal.textContent = formWeightInput.value; });
 
-    // Toggle between default O1.5/U2.5 odds inputs and custom line odds inputs
     customLineInput.addEventListener('input', () => {
       const val = parseFloat(customLineInput.value);
       if (!isNaN(val) && val > 0) {
@@ -488,7 +223,7 @@
       e.preventDefault();
       errorBox.style.display = 'none';
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Running Dixon-Coles Model...';
+      submitBtn.textContent = 'Calculating...';
 
       const payload = {
         leagueTier: document.getElementById('leagueTier').value,
@@ -518,19 +253,15 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-
         const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to compute prediction.');
-        }
-
+        if (!response.ok) throw new Error(data.error || 'Calculation failed.');
         renderResults(data);
       } catch (err) {
         errorBox.textContent = err.message;
         errorBox.style.display = 'block';
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Calculate +EV Probabilities';
+        submitBtn.textContent = 'Calculate Fair Odds & Probabilities';
       }
     });
 
@@ -540,28 +271,17 @@
       document.getElementById('resScore').textContent = data.mostLikelyScore.score;
       document.getElementById('resScoreProb').textContent = `${data.mostLikelyScore.probability}% Prob`;
       document.getElementById('resGate').textContent = `${data.match.probGate}%`;
-      document.getElementById('resTierLabel').textContent = data.match.leagueTier === 'lower' ? 'Lower Tier' : 'Major Tier';
+      document.getElementById('resTierLabel').textContent = data.match.leagueTier === 'lower' ? 'Lower' : 'Major';
 
       const marketsList = document.getElementById('marketsList');
       marketsList.innerHTML = '';
-
       let positiveCount = 0;
 
       data.markets.forEach((m) => {
         if (m.isPositiveEV) positiveCount++;
-
-        let badgeHTML = '';
-        if (m.isPositiveEV) {
-          badgeHTML = `<span class="ev-badge green">+EV (+${m.evPercent}%)</span>`;
-        } else if (m.bookieOdds !== null && m.evPercent > 0 && !m.meetsGate) {
-          badgeHTML = `<span class="ev-badge neutral">+${m.evPercent}% EV (Below Gate)</span>`;
-        } else if (m.bookieOdds !== null) {
-          badgeHTML = `<span class="ev-badge neutral">${m.evPercent > 0 ? '+' : ''}${m.evPercent}% EV</span>`;
-        } else if (m.meetsGate) {
-          badgeHTML = `<span class="ev-badge gate-pass">Passes ${data.match.probGate}% Gate</span>`;
-        } else {
-          badgeHTML = `<span class="ev-badge neutral">Below Gate</span>`;
-        }
+        let badgeHTML = m.isPositiveEV 
+          ? `<span class="ev-badge green">+EV (+${m.evPercent}%)</span>` 
+          : `<span class="ev-badge neutral">${m.evPercent !== null ? m.evPercent + '% EV' : 'Fair Odd Only'}</span>`;
 
         const card = document.createElement('div');
         card.className = `market-card ${m.isPositiveEV ? 'positive-ev' : ''}`;
@@ -571,28 +291,15 @@
             ${badgeHTML}
           </div>
           <div class="market-metrics">
-            <div class="metric">
-              <span>True Prob</span>
-              <strong style="color: ${m.meetsGate ? '#f1f5f9' : '#94a3b8'}">${m.probability}%</strong>
-            </div>
-            <div class="metric">
-              <span>Fair Odds</span>
-              <strong>${m.fairOdds.toFixed(2)}</strong>
-            </div>
-            <div class="metric">
-              <span>Bookie Odds</span>
-              <strong style="color: ${m.isPositiveEV ? 'var(--green-text)' : 'inherit'}">
-                ${m.bookieOdds !== null ? m.bookieOdds.toFixed(2) : '—'}
-              </strong>
-            </div>
+            <div class="metric"><span>True Prob</span><strong>${m.probability}%</strong></div>
+            <div class="metric"><span>Fair Odds</span><strong>${m.fairOdds.toFixed(2)}</strong></div>
+            <div class="metric"><span>Bookie Odds</span><strong style="color: ${m.isPositiveEV ? 'var(--green-text)' : 'inherit'}">${m.bookieOdds !== null ? m.bookieOdds.toFixed(2) : '—'}</strong></div>
           </div>
         `;
         marketsList.appendChild(card);
       });
 
-      document.getElementById('evCountBadge').textContent =
-        positiveCount > 0 ? `${positiveCount} Qualifying +EV Pick${positiveCount > 1 ? 's' : ''}` : '';
-
+      document.getElementById('evCountBadge').textContent = positiveCount > 0 ? `${positiveCount} +EV Match Found` : '';
       resultsDiv.style.display = 'block';
       resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
